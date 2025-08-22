@@ -99,6 +99,12 @@ const getOne = async (req,res) => {
 
 //         const user = await User.findById(userId)
 
+//         const { error } = userValidation(body).userLawUpdate
+        
+//         if ( error ) {
+//             return res.status(401).json(error.details[0].message)
+//         }
+
 //         if ( !user ) {
 //             return res.status(400).json({ msg : "Cet utilisateur n'existe pas" })
 //         }
@@ -141,4 +147,19 @@ const updateUser = async (req, res) => {
     }
 }
 
-export { register, login, getAll, getOne, updateUser }
+const deleteOne = async (req, res) => {
+    try {
+        const user = await User.findByIdAndDelete(req.params.id)
+
+        if ( !user ) {
+            return res.status(404).json({ msg : "Cet utilisateur n'existe pas" })
+        }
+
+        res.status(200).json({ msg : `L'utilisateur ${ user.firstName } ${ user.name } à bien été supprimé` })
+    } catch (error) {
+        console.log(error);
+        res.sendStatus(500)
+    }
+}
+
+export { register, login, getAll, getOne, updateUser, deleteOne }

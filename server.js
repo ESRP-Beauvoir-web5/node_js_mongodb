@@ -2,6 +2,7 @@
 import express from 'express'
 import db from './db/db.js'
 import userRoute from './routes/user.route.js'
+import articleRoute from './routes/article.route.js'
 // IMPORT
 
 // Express
@@ -23,3 +24,4 @@ app.listen(port, () => {
 
 // Urls principales
 app.use('/users', userRoute)
+app.use('/articles', articleRoute)

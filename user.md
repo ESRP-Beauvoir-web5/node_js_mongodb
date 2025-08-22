@@ -9,5 +9,7 @@ Structure articles
 
 title
 content
-date_de_creation
+author
+createdAt
+updatedAt
 
