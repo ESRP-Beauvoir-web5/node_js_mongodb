@@ -91,25 +91,54 @@ const getOne = async (req,res) => {
     }
 }
 
-const updateOne = async (req, res) => {
-    try {
-        const userId = req.params.id
+// const updateOne = async (req, res) => {
+//     try {
+//         const userId = req.params.id
         
-        const updatedUser = req.body
+//         const updatedUser = req.body
 
-        const user = await User.findById(userId)
+//         const user = await User.findById(userId)
 
-        if ( !user ) {
-            return res.status(400).json({ msg : "Cet utilisateur n'existe pas" })
+//         if ( !user ) {
+//             return res.status(400).json({ msg : "Cet utilisateur n'existe pas" })
+//         }
+
+//         Object.assign(user, updatedUser)
+//         const modifiedUser = await user.save()
+//         return res.status(200).json({ msg : "utilisateur mis à jour", modifiedUser })
+//     } catch (error) {
+//         console.log(error)
+//         res.status(500).json({ msg : "Erreur lors de la mise à jour de l'utilisateur" })
+//     }
+// }
+
+// Autre méthode d'update
+
+const updateUser = async (req, res) => {
+    try {
+        const { body } = req
+
+        if ( !body ) {
+            return res.status(400).json({ msg : "Pas de données dans la requête" })
         }
 
-        Object.assign(user, updatedUser)
-        const modifiedUser = await user.save()
-        return res.status(200).json({ msg : "utilisateur mis à jour", modifiedUser })
+        const { error } = userValidation(body).userLawUpdate
+        
+        if ( error ) {
+            return res.status(401).json(error.details[0].message)
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(req.params.id, body, { new : true })
+
+        if ( !updatedUser ) {
+            res.status(404).json({ msg : "L'utilisateur n'existe pas" })
+        }
+
+        return res.status(200).json(updatedUser)
     } catch (error) {
         console.log(error)
-        res.status(500).json({ msg : "Erreur lors de la mise à jour de l'utilisateur" })
+        res.status(500).json({ msg : "Erreur serveur", error : error })
     }
 }
 
-export { register, login, getAll, getOne, updateOne }
+export { register, login, getAll, getOne, updateUser }

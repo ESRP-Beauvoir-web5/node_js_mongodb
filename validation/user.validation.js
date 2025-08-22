@@ -9,15 +9,26 @@ function userValidation(body) {
         password : joi.string().required().regex(/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$/),
         role : joi.string()
     })
-
+    
+    
     const userLawLogin = joi.object({
         email : joi.string().email().trim().required(),
         password : joi.string().required()
     })
-
+    
+    const userLawUpdate = joi.object({
+        name : joi.string().min(5).max(20).trim(),
+        firstName : joi.string().min(5).max(20).trim(),
+        email : joi.string().email().trim(),
+        // Regex : Minimum 8 caractères, une majuscule, une minuscule,, un chiffre et un caractère spécial
+        password : joi.string().regex(/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$/),
+        role : joi.string()
+    })
+    
     return {
         userLawRegister : userLawRegister.validate(body),
-        userLawLogin : userLawLogin.validate(body)
+        userLawLogin : userLawLogin.validate(body),
+        userLawUpdate : userLawUpdate.validate(body)
     }
 }
 
