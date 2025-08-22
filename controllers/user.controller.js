@@ -1,0 +1,115 @@
+import User from '../models/user.model.js'
+import userValidation from '../validation/user.validation.js'
+import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
+
+const register = async (req, res) => {
+    try {
+        const { body } = req
+        
+        const { error } = userValidation(body).userLawRegister
+        
+        if ( error ) {
+            return res.status(401).json(error.details[0].message)
+        }
+
+        const searchUser = await User.findOne({email : req.body.email})
+
+        if ( searchUser ) {
+            return res.status(403).json({msg : `Un utilisateur avec l'email ${req.body.email} existe déjà`})
+        }
+
+        const user = new User(req.body)
+        const newUser = await user.save()
+        return res.status(201).json({ msg : "Utilisateur crée", newUser })
+    } catch (error) {
+        console.log(error)
+        res.sendStatus(500)
+    }
+}
+
+const login = async (req,res) => {
+    try {
+        const { email, password } = req.body
+
+        const { error } = userValidation(req.body).userLawLogin
+
+        if ( error ) {
+            return res.status(401).json(error.details[0].message)
+        }
+
+        const user = await User.findOne({ email : email })
+
+        if ( !user ) {
+            return res.status(400).json({ msg : "Identifiants invalides" })
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password)
+
+        if ( !isMatch ) {
+            return res.status(400).json({ msg : "identifiants invalides" })
+        }
+
+        res.status(200).json({
+            name : user.name,
+            role : user.role,
+            token : jwt.sign({id : user._id}, process.env.SECRET_KEY, { expiresIn : "12h" })
+        })
+    } catch (error) {
+        console.log(error);
+        res.sendStatus(500)
+    }
+}
+
+const getAll = async (req, res) => {
+    try {
+        const userList = await User.find().select('-password')
+
+        if ( userList.length == 0 ) {
+            return res.status(200).json({ msg : "Liste d'utilisateurs vide" })
+        }
+
+        return res.status(200).json(userList)
+    } catch (error) {
+        console.log(error);
+        res.sendStatus(500)
+    }
+}
+
+const getOne = async (req,res) => {
+    try {
+        const user = await User.findById(req.params.id).select('-password')
+
+        if ( !user ) {
+            return res.status(400).json({ msg : "Cet utilisateur n'existe pas" })
+        }
+
+        return res.status(200).json(user)
+    } catch (error) {
+        console.log(error);
+        res.sendStatus(500)
+    }
+}
+
+const updateOne = async (req, res) => {
+    try {
+        const userId = req.params.id
+        
+        const updatedUser = req.body
+
+        const user = await User.findById(userId)
+
+        if ( !user ) {
+            return res.status(400).json({ msg : "Cet utilisateur n'existe pas" })
+        }
+
+        Object.assign(user, updatedUser)
+        const modifiedUser = await user.save()
+        return res.status(200).json({ msg : "utilisateur mis à jour", modifiedUser })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ msg : "Erreur lors de la mise à jour de l'utilisateur" })
+    }
+}
+
+export { register, login, getAll, getOne, updateOne }
